@@ -93,36 +93,6 @@ services:
     networks:
       - app-network
 
-  # ============================================================
-  # PostgreSQL 資料庫服務
-  # ============================================================
-  db:
-    # 使用官方 PostgreSQL 最新版映像
-    image: postgres:latest
-    # 設定容器名稱
-    container_name: postgres_db
-    # 設定重啟策略
-    restart: unless-stopped
-    # 設定資料庫環境變數
-    environment:
-      # 設定 PostgreSQL 使用者名稱（僅供本地開發使用）
-      POSTGRES_USER: user
-      # 設定 PostgreSQL 密碼（僅供本地開發使用）
-      POSTGRES_PASSWORD: password
-      # 設定預設資料庫名稱
-      POSTGRES_DB: d_postgres
-    # 設定埠號映射
-    ports:
-      # 將主機的 5432 埠映射至容器的 5432 埠
-      - "5432:5432"
-    # 掛載資料持久化目錄（容器刪除後資料不會遺失）
-    volumes:
-      # 掛載 postgres_data 目錄至容器的資料目錄
-      - ./postgres_data:/var/lib/postgresql/data
-    # 設定所屬網路
-    networks:
-      - app-network
-
 # 定義共用網路（所有服務透過此網路互相通訊）
 networks:
   app-network:
