@@ -1,0 +1,130 @@
+# Docker Compose 設定檔版本聲明
+version: "3.8"
+
+# 定義所有服務
+services:
+
+  # ============================================================
+  # Nginx 服務：負責接收 Web 請求並轉發至 php-fpm
+  # ============================================================
+  nginx:
+    # 指定 Nginx Dockerfile 所在目錄
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    # 設定容器名稱
+    container_name: nginx
+    # 設定重啟策略（容器意外退出後自動重啟）
+    restart: unless-stopped
+    # 設定埠號映射（主機埠:容器埠）
+    ports:
+      # 將主機的 80 埠映射至容器的 80 埠（HTTP）
+      - "80:80"
+      # 將主機的 443 埠映射至容器的 443 埠（HTTPS，備用）
+      - "443:443"
+    # 掛載共用應用程式目錄（與 php-fpm 共享相同程式碼）
+    volumes:
+      # 掛載應用程式目錄至容器的 /var/www/html
+      - ./app:/var/www/html
+      # 掛載 Nginx 日誌目錄至主機（方便查看日誌）
+      - ./logs/nginx:/var/log/nginx
+    # 設定服務依賴（nginx 啟動前必須先啟動 php-fpm）
+    depends_on:
+      - php-fpm
+    # 設定所屬網路
+    networks:
+      - app-network
+
+  # ============================================================
+  # PHP-FPM 服務：負責處理 Web 請求（由 Nginx 轉發過來）
+  # ============================================================
+  php-fpm:
+    # 指定 php-fpm Dockerfile 所在目錄
+    build:
+      context: ./php-fpm
+      dockerfile: Dockerfile
+    # 設定容器名稱
+    container_name: php-fpm
+    # 設定重啟策略
+    restart: unless-stopped
+    # 掛載共用應用程式目錄（與 nginx 共享相同程式碼）
+    volumes:
+      # 掛載應用程式目錄至容器的 /var/www/html
+      - ./app:/var/www/html
+      # 掛載 php-fpm 日誌目錄至主機
+      - ./logs/php-fpm:/var/log/php-fpm
+    # 設定環境變數（可依專案調整）
+    environment:
+      # 設定 Laravel 應用程式環境
+      - APP_ENV=local
+    # 設定服務依賴（php-fpm 啟動前必須先啟動資料庫）
+    depends_on:
+      - db
+    # 設定所屬網路
+    networks:
+      - app-network
+
+  # ============================================================
+  # PHP Worker 服務：負責執行 Laravel Queue / Schedule 等背景任務
+  # ============================================================
+  php-worker:
+    # 指定 php-worker Dockerfile 所在目錄
+    build:
+      context: ./php-worker
+      dockerfile: Dockerfile
+    # 設定容器名稱
+    container_name: php-worker
+    # 設定重啟策略
+    restart: unless-stopped
+    # 掛載共用應用程式目錄（Worker 需要存取相同程式碼）
+    volumes:
+      # 掛載應用程式目錄至容器的 /var/www/html
+      - ./app:/var/www/html
+      # 掛載 Supervisor 日誌目錄至主機（方便監控 Worker 狀態）
+      - ./logs/supervisor:/var/log/supervisor
+    # 設定環境變數（可依專案調整）
+    environment:
+      # 設定 Laravel 應用程式環境
+      - APP_ENV=local
+    # 設定服務依賴（Worker 啟動前必須先啟動資料庫）
+    depends_on:
+      - db
+    # 設定所屬網路
+    networks:
+      - app-network
+
+  # ============================================================
+  # PostgreSQL 資料庫服務
+  # ============================================================
+  db:
+    # 使用官方 PostgreSQL 最新版映像
+    image: postgres:latest
+    # 設定容器名稱
+    container_name: postgres_db
+    # 設定重啟策略
+    restart: unless-stopped
+    # 設定資料庫環境變數
+    environment:
+      # 設定 PostgreSQL 使用者名稱（僅供本地開發使用）
+      POSTGRES_USER: user
+      # 設定 PostgreSQL 密碼（僅供本地開發使用）
+      POSTGRES_PASSWORD: password
+      # 設定預設資料庫名稱
+      POSTGRES_DB: d_postgres
+    # 設定埠號映射
+    ports:
+      # 將主機的 5432 埠映射至容器的 5432 埠
+      - "5432:5432"
+    # 掛載資料持久化目錄（容器刪除後資料不會遺失）
+    volumes:
+      # 掛載 postgres_data 目錄至容器的資料目錄
+      - ./postgres_data:/var/lib/postgresql/data
+    # 設定所屬網路
+    networks:
+      - app-network
+
+# 定義共用網路（所有服務透過此網路互相通訊）
+networks:
+  app-network:
+    # 使用 bridge 驅動（預設單機網路模式）
+    driver: bridge
