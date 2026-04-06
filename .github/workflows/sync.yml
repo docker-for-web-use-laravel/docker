@@ -1,0 +1,13 @@
+name: Auto Pull
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  sync-code:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code
+        run: |
+          cd ~/projects/docker
+          git pull origin main
