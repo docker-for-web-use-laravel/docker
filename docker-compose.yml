@@ -53,13 +53,13 @@ services:
       - ./app:/var/www/html
       # 掛載 php-fpm 日誌目錄至主機
       - ./logs/php-fpm:/var/log/php-fpm
+    # 加入此設定，讓 PHP 能連到主機資料庫
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # 設定環境變數（可依專案調整）
     environment:
       # 設定 Laravel 應用程式環境
       - APP_ENV=local
-    # 設定服務依賴（php-fpm 啟動前必須先啟動資料庫）
-    depends_on:
-      - db
     # 設定所屬網路
     networks:
       - app-network
@@ -82,13 +82,13 @@ services:
       - ./app:/var/www/html
       # 掛載 Supervisor 日誌目錄至主機（方便監控 Worker 狀態）
       - ./logs/supervisor:/var/log/supervisor
+    # 加入此設定，讓 PHP 能連到主機資料庫
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # 設定環境變數（可依專案調整）
     environment:
       # 設定 Laravel 應用程式環境
       - APP_ENV=local
-    # 設定服務依賴（Worker 啟動前必須先啟動資料庫）
-    depends_on:
-      - db
     # 設定所屬網路
     networks:
       - app-network
