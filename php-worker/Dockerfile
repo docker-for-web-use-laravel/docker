@@ -9,7 +9,7 @@ WORKDIR /var/www/html
 # 包含：git/unzip (Composer 用), libpq (PostgreSQL 用), 
 # icu-dev (intl 用), supervisor (管理背景進程)
 RUN apk add --no-cache \
-    git unzip icu-dev libpq-dev tzdata supervisor \
+    git unzip icu-dev libpq-dev tzdata supervisor linux-headers \
     && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo "${TZ}" > /etc/timezone
 

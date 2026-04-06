@@ -8,7 +8,7 @@ WORKDIR /var/www/html
 # 1. 僅安裝 Laravel 運行絕對必要的系統套件
 # 包含：git/unzip (Composer 用), libpq (PostgreSQL 用), icu-dev (intl 用)
 RUN apk add --no-cache \
-    git unzip icu-dev libpq-dev tzdata \
+    git unzip icu-dev libpq-dev tzdata linux-headers \
     && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo "${TZ}" > /etc/timezone
 
