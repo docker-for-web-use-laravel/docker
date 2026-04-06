@@ -11,3 +11,5 @@ jobs:
         run: |
           cd ~/projects/docker
           git pull origin main
+          # 在構建前校準時間，避免編譯錯誤
+          sudo hwclock -s
