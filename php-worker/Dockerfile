@@ -52,36 +52,16 @@ RUN docker-php-ext-configure gd \
     # 指定 jpeg 函式庫目錄
     --with-jpeg
 
-# 安裝 PHP 核心擴充套件
-RUN docker-php-ext-install -j$(nproc) \
-    # 安裝 PDO 核心擴充套件，提供資料庫抽象層
-    pdo \
-    # 安裝 PDO MySQL 驅動，支援 MySQL/MariaDB 連線
-    pdo_mysql \
-    # 安裝 PDO PostgreSQL 驅動，支援 PostgreSQL 連線
-    pdo_pgsql \
-    # 安裝 pgsql 擴充套件，提供原生 PostgreSQL 函數
-    pgsql \
-    # 安裝 mbstring 擴充套件，支援多位元組字串處理
-    mbstring \
-    # 安裝 GD 影像處理擴充套件
-    gd \
-    # 安裝 zip 擴充套件，支援 ZIP 壓縮/解壓縮
-    zip \
-    # 安裝 bcmath 擴充套件，支援高精度數學運算
-    bcmath \
-    # 安裝 intl 擴充套件，支援國際化與在地化功能
-    intl \
-    # 安裝 opcache 擴充套件，加速 PHP 執行效能
-    opcache \
-    # 安裝 pcntl 擴充套件，提供程序控制支援（Worker 程序必要）
-    pcntl \
-    # 安裝 posix 擴充套件，提供 POSIX 相容函數（Supervisor 需要）
-    posix \
-    # 安裝 sockets 擴充套件，支援底層 socket 通訊
-    sockets \
-    # 安裝 exif 擴充套件，支援讀取圖片 EXIF 資訊
-    exif
+# 安裝 PHP 基礎資料庫與常用擴充
+RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif bcmath zip
+
+# 安裝影像處理與國際化套件（編譯負擔較重，單獨處理）
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd intl
+
+# 安裝系統與效能優化套件
+RUN docker-php-ext-install opcache pcntl posix sockets \
+    && docker-php-source delete
 
 # 透過 PECL 安裝 Redis 擴充套件，支援 Redis 快取與佇列
 RUN pecl install redis \
